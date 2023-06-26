@@ -235,8 +235,7 @@ export default function Portfolio() {
 					</PortfolioHeaderLeft>
 					<ScopePickerRow>
 						{PortfolioScopeValues.map((scopeValue) => {
-							return minutesPerScope(scopeValue) <
-								minutesPerScope(PortfolioScope.ONEMONTH) ? null : (
+							return (
 								<ScopePicker
 									key={scopeValue}
 									selected={scopeValue === scope}
