@@ -9,6 +9,7 @@
         "typecheck": "tsc -b"
     },
     "dependencies": {
+        "@ethersproject/bytes": "^5.7.0",
         "@reach/dialog": "^0.18.0",
         "@react-spring/web": "^9.7.2",
         "@uidotdev/usehooks": "^2.0.1",
@@ -32,6 +33,7 @@
         "valtio": "^1.10.5",
         "valtio-persist": "^1.0.2",
         "vite-plugin-babel-macros": "^1.0.6",
+        "web3": "^4.0.1",
         "zod": "^3.21.4"
     },
     "devDependencies": {
