@@ -20,7 +20,7 @@ pnpm gen
 pnpm dev
 ```
 
-Monstera uses [https://app.transpose.io](Transpose) to query the blockchain. Transpose is a graphql api that allows for easy querying of the blockchain.
+Monstera uses (Tranpose)(http://tranpose.io) to query mainnet token history with a single SQL query.
 
 You'll need to set the following environment variable to run locally:
 
