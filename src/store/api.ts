@@ -116,7 +116,12 @@ CROSS JOIN series
 			if (!res.results) {
 				throw new Error('No data');
 			}
-			return res.results;
+			return res.results.map((spot) => {
+				return {
+					...spot,
+					for_scope: scope
+				};
+			});
 		})
 		.catch((err) => {
 			console.error(err);

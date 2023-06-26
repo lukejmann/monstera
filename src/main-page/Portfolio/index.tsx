@@ -62,11 +62,14 @@ const ScopePicker = styled.div<{ selected: boolean }>`
 	background: ${({ selected, theme }) => (selected ? theme.backgroundInverse1 : 'none')};
 	color: ${({ selected, theme }) => (selected ? theme.textInverse1 : '#8A8A8A')};
 	font-size: 13.538px;
-	border: 1px solid ${({ theme }) => theme.border2Base};
+	// border: 1px solid ${({ theme }) => theme.border2Base};
+	width: 20px;
+	justify-content: center;
+	align-items: center;
 
 	&:hover {
 		opacity: 0.8;
-		border: 1px solid ${({ theme }) => theme.text3};
+		// border: 1px solid ${({ theme }) => theme.text3};
 		cursor: pointer;
 	}
 `;
@@ -192,7 +195,7 @@ export default function Portfolio() {
 			acc[timestamp].push(assetSpot);
 			return acc;
 		}, {} as { [timestamp: number]: AssetSpot[] });
-	}, [assetSpots]);
+	}, [assetSpots, scope]);
 
 	const chartValues = useMemo(() => {
 		// then we get the sum of the value of all the asset spots for each timestamp

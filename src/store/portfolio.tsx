@@ -26,6 +26,7 @@ export interface AssetSpot {
 	balance: number;
 	price: number;
 	value: number;
+	for_scope: string;
 }
 
 export const portfolioStore = proxy({
@@ -105,37 +106,28 @@ export function RequestUpdater() {
 // RequestFetcher
 // listens for updates to requests and fetches data for any requests that are pending
 export default function RequestFetcher() {
-	const { requests, scope } = useSnapshot(portfolioStore);
+	const { requests, scope, assetSpots } = useSnapshot(portfolioStore);
 
 	useEffect(() => {
-		const run = async () => {
-			const promises = requests.map((request) => {
-				if (request.status == 'pending') {
-					// fetch data
-					return getSpotsForAddressWithSpot(request.address, scope)
-						.then((spots) => {
-							// portfolioStore.assetSpots = [...spots, ...portfolioStore.assetSpots];
-							// update status
-							portfolioStore.setRequestStatus(request.address, request.scope, 'success');
-							return spots;
-						})
-						.catch((e) => {
-							// update status
-							portfolioStore.setRequestStatus(request.address, request.scope, 'error');
-						});
-				}
-			});
-			const newSpots = await Promise.all(promises);
-			if (!newSpots) return;
-			// if any of the requests errored, we filter them out
-			const n = newSpots.filter((spots) => !!spots);
-			// portfolioStore.assetSpots = [];
-			const combined = [...(n as AssetSpot[][]).flat()];
-			portfolioStore.assetSpots = [];
-			portfolioStore.assetSpots = combined;
-			// portfolioStore.assetSpots = [...combined, ...portfolioStore.assetSpots];
-		};
-		run();
+		requests.forEach((request) => {
+			if (request.status == 'pending') {
+				// fetch data
+				return getSpotsForAddressWithSpot(request.address, scope)
+					.then((spots) => {
+						portfolioStore.assetSpots = [...spots, ...assetSpots].filter(
+							(assetSpot) => assetSpot.for_scope == scope
+						);
+
+						// update status
+						portfolioStore.setRequestStatus(request.address, request.scope, 'success');
+						return spots;
+					})
+					.catch((e) => {
+						// update status
+						portfolioStore.setRequestStatus(request.address, request.scope, 'error');
+					});
+			}
+		});
 	}, [requests]);
 
 	return <></>;
