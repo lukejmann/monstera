@@ -192,7 +192,7 @@ export default function Portfolio() {
 			acc[timestamp].push(assetSpot);
 			return acc;
 		}, {} as { [timestamp: number]: AssetSpot[] });
-	}, [dataLoaded]);
+	}, [assetSpots]);
 
 	const chartValues = useMemo(() => {
 		// then we get the sum of the value of all the asset spots for each timestamp

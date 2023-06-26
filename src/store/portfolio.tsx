@@ -55,11 +55,11 @@ export const portfolioStore = proxy({
 	assetSpots: [] as AssetSpot[],
 	// used to determine if we need to recalculate the portfolio. should be refactored to be more clear
 	get dataLoaded() {
-		const refresh =
-			portfolioStore.requests.every((request) => request.status == 'success') ||
-			portfolioStore.refresh;
-		portfolioStore.refresh = false;
-		return portfolioStore.assetSpots.length;
+		// const refresh =
+		// 	portfolioStore.requests.every((request) => request.status == 'success') ||
+		// 	portfolioStore.refresh;
+		// portfolioStore.refresh = false;
+		return portfolioStore.assetSpots.length > 0;
 	},
 	// get
 	setRequestStatus: (
@@ -114,8 +114,7 @@ export default function RequestFetcher() {
 					// fetch data
 					return getSpotsForAddressWithSpot(request.address, scope)
 						.then((spots) => {
-							// portfolioStore.assetSpots = [];
-
+							// portfolioStore.assetSpots = [...spots, ...portfolioStore.assetSpots];
 							// update status
 							portfolioStore.setRequestStatus(request.address, request.scope, 'success');
 							return spots;
@@ -128,11 +127,13 @@ export default function RequestFetcher() {
 			});
 			const newSpots = await Promise.all(promises);
 			if (!newSpots) return;
-			// if any of the requests errored, we don't want to update the portfolio
-			if (newSpots.some((spots) => !spots)) return;
+			// if any of the requests errored, we filter them out
+			const n = newSpots.filter((spots) => !!spots);
+			// portfolioStore.assetSpots = [];
+			const combined = [...(n as AssetSpot[][]).flat()];
 			portfolioStore.assetSpots = [];
-			const combined = [...(newSpots as AssetSpot[][]).flat()];
 			portfolioStore.assetSpots = combined;
+			// portfolioStore.assetSpots = [...combined, ...portfolioStore.assetSpots];
 		};
 		run();
 	}, [requests]);
