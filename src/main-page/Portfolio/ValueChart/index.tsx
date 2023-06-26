@@ -3,30 +3,13 @@ import { localPoint } from '@visx/event';
 import { EventType } from '@visx/event/lib/types';
 import { GlyphCircle } from '@visx/glyph';
 import { Line } from '@visx/shape';
-import {
-	NumberValue,
-	bisect,
-	curveCardinal,
-	scaleLinear,
-	timeDay,
-	timeHour,
-	timeMinute,
-	timeMonth
-} from 'd3';
+import { NumberValue, bisect, curveCardinal, scaleLinear, timeDay, timeMinute } from 'd3';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'react-feather';
 import styled, { useTheme } from 'styled-components/macro';
 import { ErrorText } from '~/ui';
 import { PortfolioScope } from '../index';
-import {
-	dayHourFormatter,
-	formatUSD,
-	hourFormatter,
-	monthDayFormatter,
-	monthTickFormatter,
-	monthYearDayFormatter,
-	weekFormatter
-} from '../util';
+import { dayHourFormatter, formatUSD, hourFormatter, monthDayFormatter } from '../util';
 import AnimatedInLineChart from './AnimatedInLineChart';
 import InLineChart from './InLineChart';
 
@@ -177,10 +160,6 @@ export function ValueChart({
 
 	const graphInnerHeight = height - margin.top - margin.bottom;
 
-	console.log('startingValue', startingValue);
-	console.log('endingValue', endingValue);
-	console.log('width', width);
-
 	const timeScale = useMemo(
 		() => scaleLinear().domain([startingValue.timestamp, endingValue.timestamp]).range([0, width]),
 		[startingValue, endingValue, width]
@@ -201,18 +180,29 @@ export function ValueChart({
 		locale: string
 	): [TickFormatter<NumberValue>, (v: number) => string, NumberValue[]] {
 		const offsetTime = (endingValue.timestamp.valueOf() - startingValue.timestamp.valueOf()) / 24;
-		console.log('offsetTime', offsetTime);
 		const startDateWithOffset = new Date((startingValue.timestamp.valueOf() + offsetTime) * 1000);
 		const endDateWithOffset = new Date((endingValue.timestamp.valueOf() - offsetTime) * 1000);
 
-		console.log('startDateWithOffset', startDateWithOffset);
-		console.log('endDateWithOffset', endDateWithOffset);
 		switch (portfolioScope) {
-			case PortfolioScope.THREEYEAR:
+			case PortfolioScope.ONEHOUR ||
+				PortfolioScope.ONEDAY ||
+				PortfolioScope.ONEWEEK ||
+				PortfolioScope.ONEMONTH: {
+				const interval = timeMinute.every(5);
+
 				return [
-					monthTickFormatter(locale),
-					monthYearDayFormatter(locale),
-					timeMonth.range(startDateWithOffset, endDateWithOffset, 2).map((x) => x.valueOf() / 1000)
+					hourFormatter(locale),
+					dayHourFormatter(locale),
+					(interval ?? timeMinute)
+						.range(startDateWithOffset, endDateWithOffset, interval ? 2 : 10)
+						.map((x) => x.valueOf() / 1000)
+				];
+			}
+			case PortfolioScope.THREEMONTH || PortfolioScope.SIXMONTH || PortfolioScope.ONEYEAR:
+				return [
+					monthDayFormatter(locale),
+					dayHourFormatter(locale),
+					timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
 				];
 			default:
 				return [

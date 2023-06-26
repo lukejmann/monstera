@@ -27,12 +27,70 @@ export const PortfolioContainer = styled.div`
 `;
 
 export enum PortfolioScope {
+	ONEHOUR = '1H',
+	ONEDAY = '1D',
+	ONEWEEK = '1W',
 	ONEMONTH = '1M',
 	THREEMONTH = '3M',
 	SIXMONTH = '6M',
 	ONEYEAR = '1Y',
-	THREEYEAR = '3Y'
+	THREEYEAR = '3Y',
+	FIVEYEAR = '5Y'
 }
+
+export const scopeToInterval = (scope: PortfolioScope) => {
+	switch (scope) {
+		case PortfolioScope.ONEHOUR:
+			return '1h';
+		case PortfolioScope.ONEDAY:
+			return '1 day';
+		case PortfolioScope.ONEWEEK:
+			return '1 week';
+		case PortfolioScope.ONEMONTH:
+			return '1 month';
+		case PortfolioScope.THREEMONTH:
+			return '3 month';
+		case PortfolioScope.SIXMONTH:
+			return '6 month';
+		case PortfolioScope.ONEYEAR:
+			return '1 year';
+		case PortfolioScope.THREEYEAR:
+			return '3 year';
+		case PortfolioScope.FIVEYEAR:
+			return '5 year';
+		default:
+			return '1 hour';
+	}
+};
+
+export const minutesPerScope = (scope: PortfolioScope) => {
+	switch (scope) {
+		case PortfolioScope.ONEHOUR:
+			return 60;
+		case PortfolioScope.ONEDAY:
+			return 60 * 24;
+		case PortfolioScope.ONEWEEK:
+			return 60 * 24 * 7;
+		case PortfolioScope.ONEMONTH:
+			return 60 * 24 * 30;
+		case PortfolioScope.THREEMONTH:
+			return 60 * 24 * 30 * 3;
+		case PortfolioScope.SIXMONTH:
+			return 60 * 24 * 30 * 6;
+		case PortfolioScope.ONEYEAR:
+			return 60 * 24 * 365;
+		case PortfolioScope.THREEYEAR:
+			return 60 * 24 * 365 * 3;
+		case PortfolioScope.FIVEYEAR:
+			return 60 * 24 * 365 * 5;
+		default:
+			return 60;
+	}
+};
+
+export const spotPerScope = (scope: PortfolioScope) => {
+	return 100;
+};
 
 const portfolioView = proxy({
 	scope: PortfolioScope.ONEMONTH
@@ -46,20 +104,38 @@ export default function Portfolio() {
 	const valuePoints = useMemo(() => {
 		// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
 		const groupedAssetSpots = assetSpots.reduce((acc, assetSpot) => {
-			const timestamp = assetSpot.timestamp;
+			// round timestamp to the nearest minute
+			const date = new Date(assetSpot.timestamp);
+			console.log('assetSpot.timestamp', date);
+			const timestampDate = new Date(
+				Date.UTC(
+					date.getUTCFullYear(),
+					date.getUTCMonth(),
+					date.getUTCDate(),
+					date.getUTCHours(),
+					date.getUTCMinutes()
+				)
+			);
+			console.log('timestampDate', timestampDate);
+			const timestamp = timestampDate.getTime();
+
 			if (!acc[timestamp]) acc[timestamp] = [];
 			// @ts-ignore
 			acc[timestamp].push(assetSpot);
 			return acc;
 		}, {} as { [timestamp: number]: AssetSpot[] });
 
+		console.log('groupedAssetSpots', groupedAssetSpots);
+
 		// then we get the sum of the value of all the asset spots for each timestamp
 		const valuePoints = Object.entries(groupedAssetSpots).map(([timestamp, assetSpots]) => {
 			const value = assetSpots.reduce((acc, assetSpot) => acc + assetSpot.value, 0);
-			// we need to conver 2023-06-26T14:08:58Z to a timestamp
-			const timestampAsNumber = new Date(timestamp).getTime() / 10000;
-			return { timestamp: timestampAsNumber, value };
+			return { timestamp: parseInt(timestamp) / 1000, value };
 		});
+
+		console.log('valuePoints', valuePoints);
+
+		// console
 
 		return valuePoints.sort((a, b) => a.timestamp - b.timestamp);
 	}, [assetSpots]);

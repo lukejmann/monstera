@@ -15,7 +15,7 @@ export interface Request {
 
 export interface AssetSpot {
 	owner_address: string;
-	timestamp: number;
+	timestamp: string;
 	token_address: string;
 	symbol: string;
 	name: string;
@@ -32,6 +32,9 @@ export const portfolioStore = proxy({
 	addresses: [
 		{
 			pubkey: '0xC2BAF6CdBEebE932d545DfB1802c81f721432566'
+		},
+		{
+			pubkey: '0xE5501BC2B0Df6D0D7daAFC18D2ef127D9e612963'
 		}
 	] as Address[],
 	addAddress: (address: Address) => {
@@ -97,13 +100,13 @@ export function RequestUpdater() {
 // RequestFetcher
 // listens for updates to requests and fetches data for any requests that are pending
 export default function RequestFetcher() {
-	const { requests } = useSnapshot(portfolioStore);
+	const { requests, scope } = useSnapshot(portfolioStore);
 
 	useEffect(() => {
 		const promises = requests.map((request) => {
 			if (request.status == 'pending') {
 				// fetch data
-				return getSpotsForAddressWithSpot(request.address, '30 days', 10)
+				return getSpotsForAddressWithSpot(request.address, scope)
 					.then((spots) => {
 						portfolioStore.assetSpots.push(...spots);
 
