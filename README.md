@@ -20,7 +20,7 @@ pnpm gen
 pnpm dev
 ```
 
-Monstera uses (Tranpose)[http://tranpose.io] to query mainnet token history with a single SQL query.
+Monstera uses [Tranpose](http://tranpose.io) to query mainnet token history with a single SQL query.
 
 You'll need to set the following environment variable to run locally:
 
