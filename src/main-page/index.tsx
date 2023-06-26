@@ -1,16 +1,17 @@
 import { addressesModalState } from '~/store';
+import { ActionText } from '~/ui';
 import AddressesModal from './AddressesList/modal';
 import Portfolio from './Portfolio';
 
 export const MainPage = () => {
 	return (
 		<div style={{ position: 'relative', width: '100vw', height: '100vh' }}>
-			<button
+			<ActionText
 				style={{ position: 'absolute', left: '20px', bottom: '20px' }}
 				onClick={() => (addressesModalState.isOpen = true)}
 			>
 				Addresses
-			</button>
+			</ActionText>
 			<Portfolio />
 			<AddressesModal />
 		</div>
