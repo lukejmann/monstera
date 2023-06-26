@@ -1,5 +1,6 @@
 import { addressesModalState } from '~/store';
 import AddressesModal from './Addresses/modal';
+import Portfolio from './Portfolio';
 
 export const MainPage = () => {
 	return (
@@ -10,6 +11,7 @@ export const MainPage = () => {
 			>
 				Addresses
 			</button>
+			<Portfolio />
 			<AddressesModal />
 		</div>
 	);

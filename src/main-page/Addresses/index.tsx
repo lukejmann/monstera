@@ -40,7 +40,13 @@ export default function AddressesList() {
 							<AddressLabel>{truncated}</AddressLabel>
 						</RowFixed>
 						<AddressRightOptions>
-							<ActionText>Delete</ActionText>
+							<ActionText
+								onClick={() => {
+									portfolioStore.removeAddress(address);
+								}}
+							>
+								Delete
+							</ActionText>
 							{/* <ActionText>Export</ActionText> */}
 						</AddressRightOptions>
 					</AddresssRow>

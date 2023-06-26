@@ -79,6 +79,8 @@ const AddRow = styled.div`
 
 export default function AddressesModal() {
 	const { isOpen, textInput, error } = useSnapshot(addressesModalState);
+	const { addresses } = useSnapshot(portfolioStore);
+
 	const onClose = () => {
 		addressesModalState.reset();
 	};
@@ -88,10 +90,14 @@ export default function AddressesModal() {
 	});
 
 	const submit = async () => {
-		// const isValid = web3.utils.isAddress(textInput);
 		const isValid = true;
 		if (!isValid || !textInput) {
 			addressesModalState.error = 'Invalid address';
+			return;
+		}
+		const exists = addresses.find((a) => a.pubkey === textInput);
+		if (exists) {
+			addressesModalState.error = 'Address already tracked';
 			return;
 		}
 		portfolioStore.addAddress({
