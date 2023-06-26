@@ -8,7 +8,7 @@ export const lightTheme = {
 	text2: '#4D4D4D',
 	text3: '#B3B6CA',
 	textInverse1: '#FFFFFF',
-	backgroundInverse1: '#000',
+	backgroundInverse1: '#000000',
 	buttonTextBase: '#B3B6CA',
 	buttonBackgroundBase: '##FFFFFF',
 	border1: '##E6E6E6',

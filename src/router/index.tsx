@@ -14,7 +14,7 @@ const BG = styled.div`
 	right: 0;
 	bottom: 0;
 
-	// background: linear-gradient(0deg, rgba(254, 254, 249, 0.92), rgba(254, 254, 249, 0.96)),
+	background: linear-gradient(0deg, rgba(254, 254, 249, 0.9), rgba(254, 254, 249, 0.96)),
 		url(${Bg}) center center repeat;
 	mix-blend-mode: normal;
 	z-index: -1;

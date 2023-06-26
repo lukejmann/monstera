@@ -37,6 +37,7 @@ export const portfolioStore = proxy({
 			pubkey: '0xE5501BC2B0Df6D0D7daAFC18D2ef127D9e612963'
 		}
 	] as Address[],
+	refresh: false,
 	addAddress: (address: Address) => {
 		portfolioStore.addresses.push(address);
 	},
@@ -50,13 +51,20 @@ export const portfolioStore = proxy({
 		portfolioStore.assetSpots = portfolioStore.assetSpots.filter(
 			(assetSpot) => assetSpot.owner_address != address.pubkey
 		);
+		portfolioStore.refresh = true;
 	},
 	scope: PortfolioScope.ONEYEAR,
 	requests: [] as Request[],
 	assetSpots: [] as AssetSpot[],
-	get doneLoading() {
-		return portfolioStore.requests.every((request) => request.status == 'success');
+	// used to determine if we need to recalculate the portfolio. should be refactored to be more clear
+	get dataLoaded() {
+		const refresh =
+			portfolioStore.requests.every((request) => request.status == 'success') ||
+			portfolioStore.refresh;
+		portfolioStore.refresh = false;
+		return refresh;
 	},
+	// get
 	setRequestStatus: (
 		address: string,
 		scope: PortfolioScope,
@@ -108,6 +116,7 @@ export default function RequestFetcher() {
 				// fetch data
 				return getSpotsForAddressWithSpot(request.address, scope)
 					.then((spots) => {
+						portfolioStore.assetSpots = [];
 						portfolioStore.assetSpots.push(...spots);
 
 						// update status

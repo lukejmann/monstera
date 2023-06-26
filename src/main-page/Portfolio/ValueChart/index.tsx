@@ -189,8 +189,8 @@ export function ValueChart({
 		const startDateWithOffset = new Date((startingValue.date.valueOf() + offsetTime) * 1000);
 
 		const endDateWithOffset = new Date((endingValue.date.valueOf() - offsetTime) * 1000);
-		console.log('startDateWithOffset', startDateWithOffset);
-		console.log('endDateWithOffset', endDateWithOffset);
+		// console.log('startDateWithOffset', startDateWithOffset);
+		// console.log('endDateWithOffset', endDateWithOffset);
 
 		// switch (portfolioScope) {
 		if (minutesPerScope(portfolioScope) <= minutesPerScope(PortfolioScope.ONEWEEK)) {
@@ -204,13 +204,7 @@ export function ValueChart({
 					.map((x) => x.valueOf() / 1000)
 			];
 		}
-		// case PortfolioScope.THREEMONTH || PortfolioScope.SIXMONTH || PortfolioScope.ONEYEAR:
-		// 	return [
-		// 		monthDayFormatter(locale),
-		// 		dayHourFormatter(locale),
-		// 		timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
-		// 	];
-		// default:
+
 		return [
 			monthDayFormatter(locale),
 			dayHourFormatter(locale),

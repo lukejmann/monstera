@@ -4,6 +4,7 @@ import styled from 'styled-components/macro';
 import { proxy, useSnapshot } from 'valtio';
 import { portfolioStore } from '~/store';
 import RequestFetcher, { AssetSpot, RequestUpdater } from '~/store/portfolio';
+import { PortfolioTitle, opacify } from '~/ui';
 import { ValueChart } from './ValueChart';
 
 export const PortfolioWrapper = styled.div`
@@ -26,6 +27,46 @@ export const PortfolioContainer = styled.div`
 	top: 100px;
 `;
 
+const PortfolioHeader = styled.div`
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
+	align-items: center;
+`;
+
+const PortfolioHeaderLeft = styled.div`
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: -2px;
+`;
+
+const ScopePickerRow = styled.div`
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+`;
+
+const ScopePicker = styled.div<{ selected: boolean }>`
+	display: flex;
+	padding: 7.521px 11px;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 7.521px;
+	border-radius: 6px;
+	border-radius: 10px;
+	background: ${({ selected, theme }) => (selected ? theme.backgroundInverse1 : '#fff')};
+	color: ${({ selected, theme }) => (selected ? theme.textInverse1 : '#8A8A8A')};
+	font-size: 13.538px;
+	border: 1px solid ${({ theme }) => theme.border2Base};
+
+	&:hover {
+		opacity: 0.8;
+		border: 1px solid ${({ theme }) => theme.text3};
+		cursor: pointer;
+	}
+`;
+
 export enum PortfolioScope {
 	ONEHOUR = '1H',
 	ONEDAY = '1D',
@@ -37,6 +78,8 @@ export enum PortfolioScope {
 	THREEYEAR = '3Y',
 	FIVEYEAR = '5Y'
 }
+
+const PortfolioScopeValues = Object.values(PortfolioScope);
 
 export const scopeToInterval = (scope: PortfolioScope) => {
 	switch (scope) {
@@ -84,7 +127,7 @@ export const minutesPerScope = (scope: PortfolioScope) => {
 		case PortfolioScope.FIVEYEAR:
 			return 60 * 24 * 365 * 5;
 		default:
-			return 60;
+			return 60 * 24 * 365 * 5;
 	}
 };
 
@@ -92,14 +135,10 @@ export const spotPerScope = (scope: PortfolioScope) => {
 	return 100;
 };
 
-const portfolioView = proxy({
-	scope: PortfolioScope.ONEMONTH
-});
-
 export default function Portfolio() {
 	const [ref, bounds] = useMeasure();
 
-	const { addresses, assetSpots, scope } = useSnapshot(portfolioStore);
+	const { addresses, assetSpots, scope, dataLoaded } = useSnapshot(portfolioStore);
 
 	const valuePoints = useMemo(() => {
 		// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
@@ -107,7 +146,18 @@ export default function Portfolio() {
 			// round timestamp to the nearest minute
 			const date = new Date(assetSpot.timestamp);
 			const timestampDate =
-				minutesPerScope(scope) <= minutesPerScope(PortfolioScope.ONEWEEK)
+				minutesPerScope(scope) <= minutesPerScope(PortfolioScope.ONEDAY)
+					? new Date(
+							Date.UTC(
+								date.getUTCFullYear(),
+								date.getUTCMonth(),
+								date.getUTCDate(),
+								date.getUTCHours(),
+								date.getUTCMinutes(),
+								date.getUTCSeconds()
+							)
+					  )
+					: minutesPerScope(scope) <= minutesPerScope(PortfolioScope.ONEWEEK)
 					? new Date(
 							Date.UTC(
 								date.getUTCFullYear(),
@@ -117,15 +167,16 @@ export default function Portfolio() {
 								date.getUTCMinutes()
 							)
 					  )
-					: new Date(
+					: minutesPerScope(scope) <= minutesPerScope(PortfolioScope.ONEYEAR)
+					? new Date(
 							Date.UTC(
 								date.getUTCFullYear(),
 								date.getUTCMonth(),
 								date.getUTCDate(),
-								date.getUTCHours(),
-								date.getUTCMinutes()
+								date.getUTCHours()
 							)
-					  );
+					  )
+					: new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth()));
 
 			const timestamp = timestampDate.getTime();
 
@@ -141,19 +192,40 @@ export default function Portfolio() {
 		const valuePoints = Object.entries(groupedAssetSpots).map(([timestamp, assetSpots]) => {
 			console.log('timestamp', timestamp);
 			const value = assetSpots.reduce((acc, assetSpot) => acc + assetSpot.value, 0);
+			// @ts-ignore
 			return { date: new Date(timestamp / 1000), value };
 		});
 
-		// console.log('valuePoints', valuePoints);
-
 		return valuePoints.sort((a, b) => a.date.valueOf() - b.date.valueOf());
-	}, [assetSpots]);
+	}, [dataLoaded]);
 
 	console.log('valuePoints', valuePoints);
 
 	return (
 		<PortfolioWrapper>
 			<PortfolioContainer ref={ref}>
+				<PortfolioHeader>
+					<PortfolioHeaderLeft>
+						<PortfolioTitle>$$$</PortfolioTitle>
+						{/* <PortfolioSubtitle>Portfolio Value</PortfolioSubtitle> */}
+					</PortfolioHeaderLeft>
+					<ScopePickerRow>
+						{PortfolioScopeValues.map((scopeValue) => {
+							console.log('scopeValue', scopeValue);
+							console.log('scope', scope);
+							return (
+								<ScopePicker
+									key={scopeValue}
+									selected={scopeValue === scope}
+									onClick={() => (portfolioStore.scope = scopeValue)}
+								>
+									{scopeValue}
+								</ScopePicker>
+							);
+						})}
+					</ScopePickerRow>
+				</PortfolioHeader>
+
 				<ValueChart width={bounds.width} height={400} values={valuePoints} portfolioScope={scope} />
 			</PortfolioContainer>
 			<RequestFetcher />

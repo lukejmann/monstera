@@ -15,6 +15,13 @@ export const PortfolioTitle = styled(TextHeavy)`
 	color: ${({ theme }) => theme.text1};
 `;
 
+export const PortfolioSubtitle = styled(TextHeavy)`
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: -0.06px;
+	color: ${({ theme }) => theme.text1};
+`;
+
 export const PrimaryValueText = styled(TextHeavy)`
 	font-size: 25.754px;
 	font-weight: 500;
