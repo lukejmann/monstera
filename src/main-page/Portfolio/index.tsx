@@ -59,7 +59,7 @@ export const scopeToInterval = (scope: PortfolioScope) => {
 		case PortfolioScope.FIVEYEAR:
 			return '5 year';
 		default:
-			return '1 hour';
+			return '1 year';
 	}
 };
 
@@ -106,17 +106,27 @@ export default function Portfolio() {
 		const groupedAssetSpots = assetSpots.reduce((acc, assetSpot) => {
 			// round timestamp to the nearest minute
 			const date = new Date(assetSpot.timestamp);
-			console.log('assetSpot.timestamp', date);
-			const timestampDate = new Date(
-				Date.UTC(
-					date.getUTCFullYear(),
-					date.getUTCMonth(),
-					date.getUTCDate(),
-					date.getUTCHours(),
-					date.getUTCMinutes()
-				)
-			);
-			console.log('timestampDate', timestampDate);
+			const timestampDate =
+				minutesPerScope(scope) <= minutesPerScope(PortfolioScope.ONEWEEK)
+					? new Date(
+							Date.UTC(
+								date.getUTCFullYear(),
+								date.getUTCMonth(),
+								date.getUTCDate(),
+								date.getUTCHours(),
+								date.getUTCMinutes()
+							)
+					  )
+					: new Date(
+							Date.UTC(
+								date.getUTCFullYear(),
+								date.getUTCMonth(),
+								date.getUTCDate(),
+								date.getUTCHours(),
+								date.getUTCMinutes()
+							)
+					  );
+
 			const timestamp = timestampDate.getTime();
 
 			if (!acc[timestamp]) acc[timestamp] = [];
@@ -129,16 +139,17 @@ export default function Portfolio() {
 
 		// then we get the sum of the value of all the asset spots for each timestamp
 		const valuePoints = Object.entries(groupedAssetSpots).map(([timestamp, assetSpots]) => {
+			console.log('timestamp', timestamp);
 			const value = assetSpots.reduce((acc, assetSpot) => acc + assetSpot.value, 0);
-			return { timestamp: parseInt(timestamp) / 1000, value };
+			return { date: new Date(timestamp / 1000), value };
 		});
 
-		console.log('valuePoints', valuePoints);
+		// console.log('valuePoints', valuePoints);
 
-		// console
-
-		return valuePoints.sort((a, b) => a.timestamp - b.timestamp);
+		return valuePoints.sort((a, b) => a.date.valueOf() - b.date.valueOf());
 	}, [assetSpots]);
+
+	console.log('valuePoints', valuePoints);
 
 	return (
 		<PortfolioWrapper>

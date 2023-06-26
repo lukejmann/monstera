@@ -1,3 +1,4 @@
+// @ts-ignore
 import { useClickAway } from '@uidotdev/usehooks';
 import styled from 'styled-components/macro';
 import { useSnapshot } from 'valtio';

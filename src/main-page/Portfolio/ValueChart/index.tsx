@@ -1,6 +1,7 @@
 import { AxisBottom, TickFormatter } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { EventType } from '@visx/event/lib/types';
+// @ts-ignore
 import { GlyphCircle } from '@visx/glyph';
 import { Line } from '@visx/shape';
 import { NumberValue, bisect, curveCardinal, scaleLinear, timeDay, timeMinute } from 'd3';
@@ -8,15 +9,15 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'react-feather';
 import styled, { useTheme } from 'styled-components/macro';
 import { ErrorText } from '~/ui';
-import { PortfolioScope } from '../index';
+import { PortfolioScope, minutesPerScope } from '../index';
 import { dayHourFormatter, formatUSD, hourFormatter, monthDayFormatter } from '../util';
 import AnimatedInLineChart from './AnimatedInLineChart';
 import InLineChart from './InLineChart';
 
-const DATA_EMPTY = { value: 0, timestamp: 0 };
+const DATA_EMPTY = { value: 0, date: new Date() };
 
 export interface ChartValuePoint {
-	timestamp: number;
+	date: Date;
 	value: number;
 }
 
@@ -102,16 +103,20 @@ function fixChart(values: ChartValuePoint[] | undefined | null) {
 	const blanks: ChartValuePoint[][] = [];
 	let lastValue: ChartValuePoint | undefined = undefined;
 	for (let i = 0; i < values.length; i++) {
+		// @ts-ignore
 		if (values[i].value !== 0) {
 			if (fixedChart.length === 0 && i !== 0) {
+				// @ts-ignore
 				blanks.push([{ ...values[0], value: values[i].value }, values[i]]);
 			}
 			lastValue = values[i];
+			// @ts-ignore
 			fixedChart.push(values[i]);
 		}
 	}
 
 	if (lastValue && lastValue !== values[values.length - 1]) {
+		// @ts-ignore
 		blanks.push([lastValue, { ...values[values.length - 1], value: lastValue.value }]);
 	}
 
@@ -145,7 +150,6 @@ export function ValueChart({
 	);
 
 	const chartAvailable = !!values && values.length > 0;
-	console.log('chartAvailable', chartAvailable);
 	const missingValuesMessage = 'No data available';
 
 	const startingValue = originalValues?.[0] ?? DATA_EMPTY;
@@ -161,11 +165,12 @@ export function ValueChart({
 	const graphInnerHeight = height - margin.top - margin.bottom;
 
 	const timeScale = useMemo(
-		() => scaleLinear().domain([startingValue.timestamp, endingValue.timestamp]).range([0, width]),
+		() =>
+			scaleLinear()
+				.domain([startingValue.date.valueOf(), endingValue.date.valueOf()])
+				.range([0, width]),
 		[startingValue, endingValue, width]
 	);
-
-	console.log('timeScale', timeScale);
 
 	const rdScale = useMemo(
 		() =>
@@ -179,38 +184,39 @@ export function ValueChart({
 		portfolioScope: PortfolioScope,
 		locale: string
 	): [TickFormatter<NumberValue>, (v: number) => string, NumberValue[]] {
-		const offsetTime = (endingValue.timestamp.valueOf() - startingValue.timestamp.valueOf()) / 24;
-		const startDateWithOffset = new Date((startingValue.timestamp.valueOf() + offsetTime) * 1000);
-		const endDateWithOffset = new Date((endingValue.timestamp.valueOf() - offsetTime) * 1000);
+		const offsetTime = (endingValue.date.valueOf() - startingValue.date.valueOf()) / 24;
 
-		switch (portfolioScope) {
-			case PortfolioScope.ONEHOUR ||
-				PortfolioScope.ONEDAY ||
-				PortfolioScope.ONEWEEK ||
-				PortfolioScope.ONEMONTH: {
-				const interval = timeMinute.every(5);
+		const startDateWithOffset = new Date((startingValue.date.valueOf() + offsetTime) * 1000);
 
-				return [
-					hourFormatter(locale),
-					dayHourFormatter(locale),
-					(interval ?? timeMinute)
-						.range(startDateWithOffset, endDateWithOffset, interval ? 2 : 10)
-						.map((x) => x.valueOf() / 1000)
-				];
-			}
-			case PortfolioScope.THREEMONTH || PortfolioScope.SIXMONTH || PortfolioScope.ONEYEAR:
-				return [
-					monthDayFormatter(locale),
-					dayHourFormatter(locale),
-					timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
-				];
-			default:
-				return [
-					monthDayFormatter(locale),
-					dayHourFormatter(locale),
-					timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
-				];
+		const endDateWithOffset = new Date((endingValue.date.valueOf() - offsetTime) * 1000);
+		console.log('startDateWithOffset', startDateWithOffset);
+		console.log('endDateWithOffset', endDateWithOffset);
+
+		// switch (portfolioScope) {
+		if (minutesPerScope(portfolioScope) <= minutesPerScope(PortfolioScope.ONEWEEK)) {
+			const interval = timeMinute.every(5);
+
+			return [
+				hourFormatter(locale),
+				dayHourFormatter(locale),
+				(interval ?? timeMinute)
+					.range(startDateWithOffset, endDateWithOffset, interval ? 2 : 10)
+					.map((x) => x.valueOf() / 1000)
+			];
 		}
+		// case PortfolioScope.THREEMONTH || PortfolioScope.SIXMONTH || PortfolioScope.ONEYEAR:
+		// 	return [
+		// 		monthDayFormatter(locale),
+		// 		dayHourFormatter(locale),
+		// 		timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
+		// 	];
+		// default:
+		return [
+			monthDayFormatter(locale),
+			dayHourFormatter(locale),
+			timeDay.range(startDateWithOffset, endDateWithOffset, 7).map((x) => x.valueOf() / 1000)
+		];
+		// }
 	}
 
 	const handleHover = useCallback(
@@ -220,7 +226,7 @@ export function ValueChart({
 			const { x } = localPoint(event) || { x: 0 };
 			const x0 = timeScale.invert(x);
 			const index = bisect(
-				values.map((x) => x.timestamp),
+				values.map((x) => x.date.valueOf()),
 				x0,
 				1
 			);
@@ -229,14 +235,13 @@ export function ValueChart({
 			const d1 = values[index];
 			let valuePoint = d0;
 
-			const hasPreviousData = d1 && d1.timestamp;
+			const hasPreviousData = d1 && d1.date;
 			if (hasPreviousData) {
-				valuePoint =
-					x0.valueOf() - d0.timestamp.valueOf() > d1.timestamp.valueOf() - x0.valueOf() ? d1 : d0;
+				valuePoint = x0.valueOf() - d0.date.valueOf() > d1.date.valueOf() - x0.valueOf() ? d1 : d0;
 			}
 
 			if (valuePoint) {
-				setCrosshair(timeScale(valuePoint.timestamp));
+				setCrosshair(timeScale(valuePoint.date));
 				setDisplayValue(valuePoint);
 			}
 		},
@@ -274,7 +279,7 @@ export function ValueChart({
 
 	const curveTension = 0.9;
 
-	const getX = useMemo(() => (p: ChartValuePoint) => timeScale(p.timestamp), [timeScale]);
+	const getX = useMemo(() => (p: ChartValuePoint) => timeScale(p.date.valueOf()), [timeScale]);
 	const getY = useMemo(() => (p: ChartValuePoint) => rdScale(p.value), [rdScale]);
 	const curve = useMemo(() => curveCardinal.tension(curveTension), [curveTension]);
 
@@ -351,7 +356,7 @@ export function ValueChart({
 								fontSize={12}
 								fill={theme.textSecondary}
 							>
-								{crosshairDateFormatter(displayValue.timestamp)}
+								{crosshairDateFormatter(displayValue.date.valueOf())}
 							</text>
 							<Line
 								from={{ x: crosshair, y: margin.crosshair }}

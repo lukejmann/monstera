@@ -51,7 +51,7 @@ export const portfolioStore = proxy({
 			(assetSpot) => assetSpot.owner_address != address.pubkey
 		);
 	},
-	scope: PortfolioScope.ONEMONTH,
+	scope: PortfolioScope.ONEYEAR,
 	requests: [] as Request[],
 	assetSpots: [] as AssetSpot[],
 	get doneLoading() {
