@@ -16,7 +16,6 @@ To run locally:
 
 ```bash
 pnpm i
-pnpm gen
 pnpm dev
 ```
 
@@ -37,6 +36,6 @@ Future improvements:
 - Loading states and empty states.
 
 Privacy:
-All data in the app is ephemeral, with the only data being transfered is the public keys of the wallets you wish to track to Transpose. No other data is collected or stored. No private key signatures are required.
+All data in the app is ephemeral, with the only data being transfered is the public keys of the wallets you wish to track to Transpose. No other data is collected or stored. No private key signatures are required. No two public keys are sent in the same API query.
 
 Additionally, when the app is not actively being used, balances and wallet addresses are hidden from the UI.
