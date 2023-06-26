@@ -147,7 +147,7 @@ export const portfolioFocusedDate = proxy<{ date: Date | null }>({ date: null })
 export default function Portfolio() {
 	const [ref, bounds] = useMeasure();
 
-	const { addresses, assetSpots, scope, dataLoaded } = useSnapshot(portfolioStore);
+	const { addresses, assetSpots, scope } = useSnapshot(portfolioStore);
 	const { date: focusedDate } = useSnapshot(portfolioFocusedDate);
 
 	// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
