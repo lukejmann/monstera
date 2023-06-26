@@ -5,7 +5,9 @@ import { proxy, useSnapshot } from 'valtio';
 import { portfolioStore } from '~/store';
 import RequestFetcher, { AssetSpot, RequestUpdater } from '~/store/portfolio';
 import { PortfolioTitle, opacify } from '~/ui';
+import { TokenList } from './TokenList';
 import { ValueChart } from './ValueChart';
+import { formatUSD } from './util';
 
 export const PortfolioWrapper = styled.div`
 	width: 100vw;
@@ -14,6 +16,7 @@ export const PortfolioWrapper = styled.div`
 	flex-direction: column;
 	align-items: center;
 	justify-content: flex-start;
+	overflow: auto;
 `;
 
 export const PortfolioContainer = styled.div`
@@ -25,6 +28,7 @@ export const PortfolioContainer = styled.div`
 	max-width: 700px;
 	width: 100%;
 	top: 100px;
+	height: 100%;
 `;
 
 const PortfolioHeader = styled.div`
@@ -55,7 +59,7 @@ const ScopePicker = styled.div<{ selected: boolean }>`
 	gap: 7.521px;
 	border-radius: 6px;
 	border-radius: 10px;
-	background: ${({ selected, theme }) => (selected ? theme.backgroundInverse1 : '#fff')};
+	background: ${({ selected, theme }) => (selected ? theme.backgroundInverse1 : 'none')};
 	color: ${({ selected, theme }) => (selected ? theme.textInverse1 : '#8A8A8A')};
 	font-size: 13.538px;
 	border: 1px solid ${({ theme }) => theme.border2Base};
@@ -132,17 +136,20 @@ export const minutesPerScope = (scope: PortfolioScope) => {
 };
 
 export const spotPerScope = (scope: PortfolioScope) => {
-	return 100;
+	return 40;
 };
+
+export const portfolioFocusedDate = proxy<{ date: Date | null }>({ date: null });
 
 export default function Portfolio() {
 	const [ref, bounds] = useMeasure();
 
 	const { addresses, assetSpots, scope, dataLoaded } = useSnapshot(portfolioStore);
+	const { date: focusedDate } = useSnapshot(portfolioFocusedDate);
 
-	const valuePoints = useMemo(() => {
-		// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
-		const groupedAssetSpots = assetSpots.reduce((acc, assetSpot) => {
+	// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
+	const groupedAssetSpots = useMemo(() => {
+		return assetSpots.reduce((acc, assetSpot) => {
 			// round timestamp to the nearest minute
 			const date = new Date(assetSpot.timestamp);
 			const timestampDate =
@@ -185,35 +192,48 @@ export default function Portfolio() {
 			acc[timestamp].push(assetSpot);
 			return acc;
 		}, {} as { [timestamp: number]: AssetSpot[] });
+	}, [dataLoaded]);
 
-		console.log('groupedAssetSpots', groupedAssetSpots);
-
+	const chartValues = useMemo(() => {
 		// then we get the sum of the value of all the asset spots for each timestamp
-		const valuePoints = Object.entries(groupedAssetSpots).map(([timestamp, assetSpots]) => {
-			console.log('timestamp', timestamp);
+		const chartValues = Object.entries(groupedAssetSpots).map(([timestamp, assetSpots]) => {
 			const value = assetSpots.reduce((acc, assetSpot) => acc + assetSpot.value, 0);
 			// @ts-ignore
 			return { date: new Date(timestamp / 1000), value };
 		});
 
-		return valuePoints.sort((a, b) => a.date.valueOf() - b.date.valueOf());
-	}, [dataLoaded]);
+		return chartValues.sort((a, b) => a.date.valueOf() - b.date.valueOf());
+	}, [groupedAssetSpots]);
 
-	console.log('valuePoints', valuePoints);
+	// focused spots are point-in-time values of the portfolio
+	const focusedSpots = useMemo(() => {
+		if (!focusedDate) return null;
+		const timestamp = focusedDate.getTime() * 1000;
+		const focusedSpots = groupedAssetSpots[timestamp];
+		return focusedSpots;
+	}, [groupedAssetSpots, focusedDate]);
+
+	const focusedValue = useMemo(() => {
+		if (!focusedSpots) {
+			if (!chartValues.length) return null;
+			// @ts-ignore
+			return chartValues[chartValues.length - 1].value;
+		}
+
+		return focusedSpots.reduce((acc, assetSpot) => acc + assetSpot.value, 0);
+	}, [focusedSpots]);
 
 	return (
 		<PortfolioWrapper>
 			<PortfolioContainer ref={ref}>
 				<PortfolioHeader>
 					<PortfolioHeaderLeft>
-						<PortfolioTitle>$$$</PortfolioTitle>
-						{/* <PortfolioSubtitle>Portfolio Value</PortfolioSubtitle> */}
+						{focusedValue && <PortfolioTitle>{formatUSD(focusedValue)} </PortfolioTitle>}
 					</PortfolioHeaderLeft>
 					<ScopePickerRow>
 						{PortfolioScopeValues.map((scopeValue) => {
-							console.log('scopeValue', scopeValue);
-							console.log('scope', scope);
-							return (
+							return minutesPerScope(scopeValue) <
+								minutesPerScope(PortfolioScope.ONEMONTH) ? null : (
 								<ScopePicker
 									key={scopeValue}
 									selected={scopeValue === scope}
@@ -226,7 +246,8 @@ export default function Portfolio() {
 					</ScopePickerRow>
 				</PortfolioHeader>
 
-				<ValueChart width={bounds.width} height={400} values={valuePoints} portfolioScope={scope} />
+				<ValueChart width={bounds.width} height={400} values={chartValues} portfolioScope={scope} />
+				{focusedSpots && <TokenList assetSpots={focusedSpots} />}
 			</PortfolioContainer>
 			<RequestFetcher />
 			<RequestUpdater />

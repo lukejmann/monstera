@@ -1,7 +1,7 @@
 import styled from 'styled-components/macro';
 import { proxy, useSnapshot } from 'valtio';
 import { portfolioStore } from '~/store';
-import { ActionText, AddressLabel, RowFixed } from '~/ui';
+import { ActionText, AddressLabel, PortfolioInfoLabel, PortfolioLabel, RowFixed } from '~/ui';
 
 export const AddressesContainer = styled.div`
 	position: absolute;
@@ -15,8 +15,9 @@ export const AddressesContainer = styled.div`
 
 const AddresssRow = styled.div`
 	display: flex;
-	width: 219px;
-	padding: 9.859px;
+	width: 100%;
+	// padding: 9.859px;
+	padding: 9.859px 0;
 	justify-content: space-between;
 	align-items: center;
 `;
@@ -39,16 +40,16 @@ export default function AddressesList() {
 						<RowFixed>
 							<AddressLabel>{truncated}</AddressLabel>
 						</RowFixed>
-						<AddressRightOptions>
-							<ActionText
-								onClick={() => {
-									portfolioStore.removeAddress(address);
-								}}
-							>
-								Delete
-							</ActionText>
-							{/* <ActionText>Export</ActionText> */}
-						</AddressRightOptions>
+						{/* <AddressRightOptions> */}
+						<PortfolioLabel
+							onClick={() => {
+								portfolioStore.removeAddress(address);
+							}}
+						>
+							Delete
+						</PortfolioLabel>
+						{/* <ActionText>Export</ActionText> */}
+						{/* </AddressRightOptions> */}
 					</AddresssRow>
 				);
 			})}

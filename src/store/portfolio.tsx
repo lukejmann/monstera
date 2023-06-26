@@ -31,9 +31,6 @@ export interface AssetSpot {
 export const portfolioStore = proxy({
 	addresses: [
 		{
-			pubkey: '0xC2BAF6CdBEebE932d545DfB1802c81f721432566'
-		},
-		{
 			pubkey: '0xE5501BC2B0Df6D0D7daAFC18D2ef127D9e612963'
 		}
 	] as Address[],
@@ -62,7 +59,7 @@ export const portfolioStore = proxy({
 			portfolioStore.requests.every((request) => request.status == 'success') ||
 			portfolioStore.refresh;
 		portfolioStore.refresh = false;
-		return refresh;
+		return portfolioStore.assetSpots.length;
 	},
 	// get
 	setRequestStatus: (
@@ -111,24 +108,33 @@ export default function RequestFetcher() {
 	const { requests, scope } = useSnapshot(portfolioStore);
 
 	useEffect(() => {
-		const promises = requests.map((request) => {
-			if (request.status == 'pending') {
-				// fetch data
-				return getSpotsForAddressWithSpot(request.address, scope)
-					.then((spots) => {
-						portfolioStore.assetSpots = [];
-						portfolioStore.assetSpots.push(...spots);
+		const run = async () => {
+			const promises = requests.map((request) => {
+				if (request.status == 'pending') {
+					// fetch data
+					return getSpotsForAddressWithSpot(request.address, scope)
+						.then((spots) => {
+							// portfolioStore.assetSpots = [];
 
-						// update status
-						portfolioStore.setRequestStatus(request.address, request.scope, 'success');
-					})
-					.catch((e) => {
-						// update status
-						portfolioStore.setRequestStatus(request.address, request.scope, 'error');
-					});
-			}
-		});
-		Promise.all(promises);
+							// update status
+							portfolioStore.setRequestStatus(request.address, request.scope, 'success');
+							return spots;
+						})
+						.catch((e) => {
+							// update status
+							portfolioStore.setRequestStatus(request.address, request.scope, 'error');
+						});
+				}
+			});
+			const newSpots = await Promise.all(promises);
+			if (!newSpots) return;
+			// if any of the requests errored, we don't want to update the portfolio
+			if (newSpots.some((spots) => !spots)) return;
+			portfolioStore.assetSpots = [];
+			const combined = [...(newSpots as AssetSpot[][]).flat()];
+			portfolioStore.assetSpots = combined;
+		};
+		run();
 	}, [requests]);
 
 	return <></>;

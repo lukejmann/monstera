@@ -1,5 +1,5 @@
 import { addressesModalState } from '~/store';
-import AddressesModal from './Addresses/modal';
+import AddressesModal from './AddressesList/modal';
 import Portfolio from './Portfolio';
 
 export const MainPage = () => {

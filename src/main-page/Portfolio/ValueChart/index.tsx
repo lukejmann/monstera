@@ -9,7 +9,7 @@ import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'react-feather';
 import styled, { useTheme } from 'styled-components/macro';
 import { ErrorText } from '~/ui';
-import { PortfolioScope, minutesPerScope } from '../index';
+import { PortfolioScope, minutesPerScope, portfolioFocusedDate } from '../index';
 import { dayHourFormatter, formatUSD, hourFormatter, monthDayFormatter } from '../util';
 import AnimatedInLineChart from './AnimatedInLineChart';
 import InLineChart from './InLineChart';
@@ -69,6 +69,7 @@ const ChartWrapper = styled.div`
 	position: relative;
 	width: 100%;
 	height: 100%;
+	max-height: 60vh;
 `;
 
 const ChartHeader = styled.div`
@@ -237,6 +238,7 @@ export function ValueChart({
 			if (valuePoint) {
 				setCrosshair(timeScale(valuePoint.date));
 				setDisplayValue(valuePoint);
+				portfolioFocusedDate.date = valuePoint.date;
 			}
 		},
 		[timeScale, values]
@@ -245,6 +247,7 @@ export function ValueChart({
 	const resetDisplay = useCallback(() => {
 		setCrosshair(null);
 		setDisplayValue(endingValue);
+		portfolioFocusedDate.date = endingValue.date;
 	}, [setCrosshair, setDisplayValue, endingValue]);
 
 	useEffect(() => {
@@ -279,22 +282,6 @@ export function ValueChart({
 
 	return (
 		<ChartWrapper>
-			<ChartHeader data-cy="chart-header">
-				{displayValue.value ? (
-					<>
-						<TokenValue>{formatUSD(displayValue.value)}</TokenValue>
-						<DeltaContainer>
-							{formattedDelta}
-							<ArrowCell>{arrow}</ArrowCell>
-						</DeltaContainer>
-					</>
-				) : (
-					<>
-						<MissingValue>Value Unavailable</MissingValue>
-						<ErrorText style={{ color: theme?.text3 }}>{missingValuesMessage}</ErrorText>
-					</>
-				)}
-			</ChartHeader>
 			{!chartAvailable ? (
 				<MissingValueChart
 					width={width}

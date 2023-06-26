@@ -116,8 +116,8 @@ export default function AddressesModal() {
 						<AddressesList />
 						<Separator />
 						<AddRow onClick={() => (addressesModalState.isOpen = true)}>
-							<PlusIcon />
-							<ActionText>Add Address</ActionText>
+							{/* <PlusIcon /> */}
+							<ActionText style={{ fontWeight: 500 }}>Add Address</ActionText>
 						</AddRow>
 
 						<InputWrapper>
