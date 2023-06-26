@@ -126,7 +126,7 @@ const RowInfoCol = styled.div`
 
 const TokenRow = ({ spot }: { spot: AssetSpot }) => {
 	return (
-		<TokenRowContainer>
+		<TokenRowContainer key={spot.token_address + spot.timestamp + spot.for_scope}>
 			<TokenRowLeft>
 				<TokenImageWrapper>
 					<TokenImage src={spot.image_url} />

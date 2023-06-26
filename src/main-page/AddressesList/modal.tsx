@@ -22,8 +22,8 @@ const AddAddressModalOverlay = styled.div`
     align-items: center;
     width: 100vw;
     height: 100vh;
-    
 `;
+
 const AddressModalSpacer = styled.div`
 	height: 40vh;
 	@media screen and (max-width: ${({ theme }) => theme.breakpoint.sm}px) {

@@ -54,15 +54,6 @@ export const portfolioStore = proxy({
 	scope: PortfolioScope.ONEYEAR,
 	requests: [] as Request[],
 	assetSpots: [] as AssetSpot[],
-	// used to determine if we need to recalculate the portfolio. should be refactored to be more clear
-	get dataLoaded() {
-		// const refresh =
-		// 	portfolioStore.requests.every((request) => request.status == 'success') ||
-		// 	portfolioStore.refresh;
-		// portfolioStore.refresh = false;
-		return portfolioStore.assetSpots.length > 0;
-	},
-	// get
 	setRequestStatus: (
 		address: string,
 		scope: PortfolioScope,
@@ -112,11 +103,22 @@ export default function RequestFetcher() {
 		requests.forEach((request) => {
 			if (request.status == 'pending') {
 				// fetch data
+				// this is quite inefficient, but works for now
 				return getSpotsForAddressWithSpot(request.address, scope)
 					.then((spots) => {
-						portfolioStore.assetSpots = [...spots, ...assetSpots].filter(
-							(assetSpot) => assetSpot.for_scope == scope
-						);
+						portfolioStore.assetSpots = [...spots, ...assetSpots]
+							.filter((assetSpot) => assetSpot.for_scope == scope)
+							.filter((assetSpot) => assetSpot.balance > 0)
+							// filter out any duplicates
+							.filter(
+								(assetSpot, index, self) =>
+									self.findIndex(
+										(_assetSpot) =>
+											_assetSpot.token_address == assetSpot.token_address &&
+											_assetSpot.owner_address == assetSpot.owner_address &&
+											_assetSpot.timestamp == assetSpot.timestamp
+									) === index
+							);
 
 						// update status
 						portfolioStore.setRequestStatus(request.address, request.scope, 'success');
