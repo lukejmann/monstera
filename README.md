@@ -31,6 +31,12 @@ VITE_TRANSPOSE_API_KEY
 Future improvements:
 
 - Use map rather than array in portfolio store.
+- Add ENS integration.
 - Improve addresses interface.
 - Add multichain calls (would be quite easy with Transpose).
 - Loading states and empty states.
+
+Privacy:
+All data in the app is ephemeral, with the only data being transfered is the public keys of the wallets you wish to track to Transpose. No other data is collected or stored. No private key signatures are required.
+
+Additionally, when the app is not actively being used, balances and wallet addresses are hidden from the UI.

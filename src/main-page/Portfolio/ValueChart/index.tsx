@@ -1,3 +1,6 @@
+// The majority of the this file along with it's child components are source from the following repo: github.com/Uniswap/interface.
+//
+//
 import { AxisBottom, TickFormatter } from '@visx/axis';
 import { localPoint } from '@visx/event';
 import { EventType } from '@visx/event/lib/types';
