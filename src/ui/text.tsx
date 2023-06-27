@@ -26,6 +26,7 @@ export const PortfolioLabel = styled.div`
 	font-size: 8px;
 	font-weight: 500;
 	letter-spacing: -0.04px;
+	text-shadow: ${({ theme }) => theme.textShadow1};
 `;
 export const PortfolioInfoLabel = styled.div`
 	color: #1a1a1a;
@@ -38,6 +39,7 @@ export const TokenName = styled.div`
 	font-size: 14px;
 	font-weight: 700;
 	letter-spacing: -0.07px;
+	text-shadow: ${({ theme }) => theme.textShadow1};
 `;
 export const TokenDescription = styled.div`
 	color: #999;

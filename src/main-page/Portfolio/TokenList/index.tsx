@@ -1,15 +1,8 @@
-import { animated, config, useTrail, useTransition } from '@react-spring/web';
-import shuffle from 'lodash.shuffle';
-import React, { useEffect, useState } from 'react';
+import { animated, config, useTrail } from '@react-spring/web';
+// @ts-ignore
 import { styled } from 'styled-components/macro';
 import { AssetSpot } from '~/store';
-import {
-	PortfolioInfoLabel,
-	PortfolioLabel,
-	SectionTitle,
-	TokenDescription,
-	TokenName
-} from '~/ui';
+import { PortfolioInfoLabel, PortfolioLabel, TokenDescription, TokenName } from '~/ui';
 
 const List = styled(animated.div)`
 	position: relative;
@@ -18,11 +11,12 @@ const List = styled(animated.div)`
 	display: flex;
 	flex-direction: column;
 	align-items: flex-start;
+	gap: 14px;
+	padding-top: 62px;
+	padding-bottom: 200px;
 `;
 
 const Card = styled(animated.div)`
-	// position: absolute;
-
 	will-change: transform, height, opacity;
 	width: 100%;
 `;
@@ -49,35 +43,30 @@ const Details = styled.div`
 	box-shadow: 0px 10px 25px -10px rgba(0, 0, 0, 0.2);
 `;
 
-// Note: didn't use this
-const CARD_HEIGHT = 100;
-
 export function TokenList({ assetSpots }: { assetSpots: AssetSpot[] }) {
-	let height = 0;
-	const transitions = useTrail(
-		assetSpots.sort((spotA, spotB) => spotB.value - spotA.value).length,
-		{
-			from: { opacity: 0, height: CARD_HEIGHT / 2 },
-			to: { opacity: 1, height: CARD_HEIGHT },
-			entry: { opacity: 1, height: CARD_HEIGHT },
-			leave: { opacity: 0, height: CARD_HEIGHT / 2 },
-			config: config.stiff
-		}
-	);
+	// Maybe later
+
+	// const transitions = useTrail(
+	// 	assetSpots.sort((spotA, spotB) => spotB.value - spotA.value).length,
+	// 	{
+	// 		config: config.wobbly,
+	// 		from: { opacity: 0.6, height: 15, scale: 0.9 },
+	// 		to: { opacity: 1, height: 'fit-content', scale: 1 }
+	// 	}
+	// );
 
 	return (
 		<List style={{}}>
-			{transitions.map(({ opacity, height }, index) => {
-				const spot = assetSpots[index];
-				return spot ? <TokenRow spot={spot} /> : <></>;
-			})}
+			{assetSpots
+				.sort((spotA, spotB) => spotB.value - spotA.value)
+				.map((spot, index) => {
+					return spot ? <TokenRow spot={spot} styles={{}} /> : <></>;
+				})}
 		</List>
 	);
 }
 
 const TokenRowContainer = styled(animated.div)`
-	// position: absolute;
-
 	will-change: transform, height, opacity;
 	width: 100%;
 	display: flex;
@@ -89,19 +78,29 @@ const TokenRowContainer = styled(animated.div)`
 const TokenRowLeft = styled.div`
 	display: flex;
 	align-items: center;
+	gap: 10px;
 `;
 
-const TokenImageWrapper = styled.div`
+const TokenImageWrapper = styled.div<{ src: string }>`
 	display: flex;
-	padding: 10px;
+
 	align-items: flex-start;
 	gap: 10px;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: url(${({ src }) => src}) no-repeat center center;
+	background-color: ${({ theme }) => theme.translucent1};
+	background-size: 100%;
+	box-shadow: ${({ theme }) => theme.shadow2Base};
 `;
 
 const TokenImage = styled.img`
 	width: 32px;
 	height: 32px;
 	border-radius: 50%;
+	box-shadow: ${({ theme }) => theme.shadow2Base};
+	background-color: ${({ theme }) => theme.translucent1};
 `;
 
 const TokenInfoCol = styled.div`
@@ -124,12 +123,12 @@ const RowInfoCol = styled.div`
 	width: 100px;
 `;
 
-const TokenRow = ({ spot }: { spot: AssetSpot }) => {
+const TokenRow = ({ spot, styles }: { spot: AssetSpot; styles: any }) => {
 	return (
-		<TokenRowContainer key={spot.token_address + spot.timestamp + spot.for_scope}>
+		<TokenRowContainer key={spot.token_address + spot.timestamp + spot.for_scope} style={styles}>
 			<TokenRowLeft>
-				<TokenImageWrapper>
-					<TokenImage src={spot.image_url} />
+				<TokenImageWrapper src={spot.image_url}>
+					{/* <TokenImage src={spot.image_url} /> */}
 				</TokenImageWrapper>
 				<TokenInfoCol>
 					<TokenName>{spot.name}</TokenName>

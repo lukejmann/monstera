@@ -3,7 +3,12 @@ import useMeasure from 'react-use-measure';
 import styled from 'styled-components/macro';
 import { proxy, useSnapshot } from 'valtio';
 import { portfolioStore } from '~/store';
-import RequestFetcher, { AssetSpot, RequestUpdater } from '~/store/portfolio';
+import {
+	AssetSpot,
+	DisplayDataUpdater,
+	InitialStateUpdater,
+	RequestFetcher
+} from '~/store/portfolio';
 import { PortfolioTitle, opacify } from '~/ui';
 import { TokenList } from './TokenList';
 import { ValueChart } from './ValueChart';
@@ -86,12 +91,12 @@ export enum PortfolioScope {
 	FIVEYEAR = '5Y'
 }
 
-const PortfolioScopeValues = Object.values(PortfolioScope);
+export const PortfolioScopeValues = Object.values(PortfolioScope);
 
 export const scopeToInterval = (scope: PortfolioScope) => {
 	switch (scope) {
 		case PortfolioScope.ONEHOUR:
-			return '1h';
+			return '1 hour';
 		case PortfolioScope.ONEDAY:
 			return '1 day';
 		case PortfolioScope.ONEWEEK:
@@ -147,12 +152,12 @@ export const portfolioFocusedDate = proxy<{ date: Date | null }>({ date: null })
 export default function Portfolio() {
 	const [ref, bounds] = useMeasure();
 
-	const { addresses, assetSpots, scope } = useSnapshot(portfolioStore);
+	const { assetSpotsToDisplay, scope } = useSnapshot(portfolioStore);
 	const { date: focusedDate } = useSnapshot(portfolioFocusedDate);
 
 	// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
 	const groupedAssetSpots = useMemo(() => {
-		return assetSpots.reduce((acc, assetSpot) => {
+		return assetSpotsToDisplay.reduce((acc, assetSpot) => {
 			// round timestamp to the nearest minute
 			const date = new Date(assetSpot.timestamp);
 			const timestampDate =
@@ -195,7 +200,7 @@ export default function Portfolio() {
 			acc[timestamp].push(assetSpot);
 			return acc;
 		}, {} as { [timestamp: number]: AssetSpot[] });
-	}, [assetSpots, scope]);
+	}, [assetSpotsToDisplay]);
 
 	const chartValues = useMemo(() => {
 		// then we get the sum of the value of all the asset spots for each timestamp
@@ -239,7 +244,7 @@ export default function Portfolio() {
 								<ScopePicker
 									key={scopeValue}
 									selected={scopeValue === scope}
-									onClick={() => (portfolioStore.scope = scopeValue)}
+									onClick={() => portfolioStore.setScope(scopeValue)}
 								>
 									{scopeValue}
 								</ScopePicker>
@@ -252,7 +257,8 @@ export default function Portfolio() {
 				{focusedSpots && <TokenList assetSpots={focusedSpots} />}
 			</PortfolioContainer>
 			<RequestFetcher />
-			<RequestUpdater />
+			<DisplayDataUpdater />
+			<InitialStateUpdater />
 		</PortfolioWrapper>
 	);
 }

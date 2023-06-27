@@ -70,6 +70,12 @@ export function getTheme() {
 
 			shadow1Base: '-39px 30px 90px rgba(0, 0, 0, 0.1)',
 			shadow1None: '-13px 10px 30px rgba(0, 0, 0, 0.0)',
+			shadow2Base:
+				' 0px 3.200000047683716px 6.400000095367432px 0px rgba(0, 0, 0, 0.08), 0px 0.800000011920929px 0.800000011920929px 0px rgba(0, 0, 0, 0.02), 0px 2.4000000953674316px 4.800000190734863px 0px rgba(0, 0, 0, 0.06);',
+			shadow2None: '0px 0px 0px 0px rgba(0, 0, 0, 0.0)',
+			textShadow1: '0px 2px 6px rgba(0, 0, 0, 0.06)',
+			textShadowNone: '0px 0px 0px rgba(0, 0, 0, 0.0)',
+
 			backdrop1Base: 'blur(7px)',
 			backdrop1None: 'blur(0px)',
 			border1Base: '1px solid #E6E6E6',

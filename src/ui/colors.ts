@@ -20,5 +20,6 @@ export const lightTheme = {
 	otherMessageText: '#4D4D4D',
 	accent1: '#ffeda4',
 	accent2: '#dbffc3',
-	accent3: '#ffc8c8'
+	accent3: '#ffc8c8',
+	translucent1: '#00000000'
 };
