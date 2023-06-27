@@ -254,7 +254,7 @@ export default function Portfolio() {
 				</PortfolioHeader>
 
 				<ValueChart width={bounds.width} height={400} values={chartValues} portfolioScope={scope} />
-				{focusedSpots && <TokenList assetSpots={focusedSpots} />}
+				{focusedSpots && <TokenList assetSpots={focusedSpots.filter((s) => s.value > 0)} />}
 			</PortfolioContainer>
 			<RequestFetcher />
 			<DisplayDataUpdater />
