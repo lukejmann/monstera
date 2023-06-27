@@ -10,8 +10,9 @@ import { Line } from '@visx/shape';
 import { NumberValue, bisect, curveCardinal, scaleLinear, timeDay, timeMinute } from 'd3';
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'react-feather';
+import { animated, config, useSpring } from 'react-spring';
 import styled, { useTheme } from 'styled-components/macro';
-import { ErrorText } from '~/ui';
+import { ErrorText, opacify } from '~/ui';
 import { PortfolioScope, minutesPerScope, portfolioFocusedDate } from '../index';
 import { dayHourFormatter, formatUSD, hourFormatter, monthDayFormatter } from '../util';
 import AnimatedInLineChart from './AnimatedInLineChart';
@@ -75,26 +76,11 @@ const ChartWrapper = styled.div`
 	max-height: 500px;
 `;
 
-const ChartHeader = styled.div`
-	position: absolute;
-	animation-duration: ${({ theme }) => theme.transition.duration.medium};
-`;
 export const TokenValue = styled.span`
 	font-size: 36px;
 	line-height: 44px;
 `;
-const MissingValue = styled(TokenValue)`
-	font-size: 24px;
-	line-height: 44px;
-	color: ${({ theme }) => theme.textTertiary};
-`;
 
-const DeltaContainer = styled.div`
-	height: 16px;
-	display: flex;
-	align-items: center;
-	margin-top: 4px;
-`;
 export const ArrowCell = styled.div`
 	padding-right: 3px;
 	display: flex;
@@ -129,6 +115,23 @@ function fixChart(values: ChartValuePoint[] | undefined | null) {
 
 const margin = { top: 100, bottom: 48, crosshair: 72 };
 
+const LoadingBlockWrapper = styled.div`
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+`;
+const LoadingBlock = styled(animated.div)`
+	display: flex;
+	justify-self: center;
+	align-self: center;
+	width: calc(100% - 5w);
+	height: calc(100% - 5vw);
+	border-radius: 16px;
+	opacity: 0.5;
+`;
+
 interface ValueChartProps {
 	width: number;
 	height: number;
@@ -154,7 +157,6 @@ export function ValueChart({
 	);
 
 	const chartAvailable = !!values && values.length > 0;
-	const missingValuesMessage = 'No data available';
 
 	const startingValue = originalValues?.[0] ?? DATA_EMPTY;
 
@@ -193,10 +195,7 @@ export function ValueChart({
 		const startDateWithOffset = new Date((startingValue.date.valueOf() + offsetTime) * 1000);
 
 		const endDateWithOffset = new Date((endingValue.date.valueOf() - offsetTime) * 1000);
-		// console.log('startDateWithOffset', startDateWithOffset);
-		// console.log('endDateWithOffset', endDateWithOffset);
 
-		// switch (portfolioScope) {
 		if (minutesPerScope(portfolioScope) <= minutesPerScope(PortfolioScope.ONEWEEK)) {
 			const interval = timeMinute.every(5);
 
@@ -272,25 +271,37 @@ export function ValueChart({
 	const updatedTicks =
 		maxTicks > 0 ? (ticks.length > maxTicks ? calculateTicks(ticks) : ticks) : [];
 	const delta = calculateDelta(startingValue.value, displayValue.value);
-	const formattedDelta = formatDelta(delta);
-	const arrow = getDeltaArrow(delta);
 	const crosshairEdgeMax = width * 0.85;
 	const crosshairAtEdge = !!crosshair && crosshair > crosshairEdgeMax;
 
-	const curveTension = 0.9;
+	const curveTension = 0.8;
 
 	const getX = useMemo(() => (p: ChartValuePoint) => timeScale(p.date.valueOf()), [timeScale]);
 	const getY = useMemo(() => (p: ChartValuePoint) => rdScale(p.value), [rdScale]);
 	const curve = useMemo(() => curveCardinal.tension(curveTension), [curveTension]);
 
+	const [{ background: loadingBackground }] = useSpring(
+		() => ({
+			from: { background: theme.backdrop1Base },
+			to: [
+				{ background: theme.accent1 },
+				{ background: theme.accent2 },
+				{ background: theme.accent3 }
+			],
+			config: config.molasses,
+			loop: {
+				reverse: true
+			}
+		}),
+		[]
+	);
+
 	return (
 		<ChartWrapper>
 			{!chartAvailable ? (
-				<MissingValueChart
-					width={width}
-					height={height}
-					message={!!displayValue.value && missingValuesMessage}
-				/>
+				<LoadingBlockWrapper>
+					<LoadingBlock style={{ background: loadingBackground }} />
+				</LoadingBlockWrapper>
 			) : (
 				<svg data-cy="value-chart" width={width} height={height} style={{ minWidth: '100%' }}>
 					<AnimatedInLineChart
@@ -302,35 +313,26 @@ export function ValueChart({
 						strokeWidth={2}
 					/>
 					{blanks.map((blank, index) => (
-						<InLineChart
-							key={index}
-							data={blank}
-							getX={getX}
-							getY={getY}
-							marginTop={margin.top}
-							curve={curve}
-							strokeWidth={2}
-							color={theme?.accent3}
-							dashed
-						/>
+						<LoadingBlock style={{ background: loadingBackground }} key={index} />
 					))}
 					{crosshair !== null ? (
 						<g>
 							<AxisBottom
 								scale={timeScale}
-								stroke={theme?.border1}
+								stroke={opacify(0.1, theme.text2)}
 								tickFormat={tickFormatter}
-								tickStroke={theme.backgroundOutline}
 								tickLength={4}
 								hideTicks={true}
-								tickTransform="translate(0 -5)"
+								tickTransform="translate(0 -12)"
 								tickValues={updatedTicks as number[]}
 								top={height - 1}
 								tickLabelProps={() => ({
 									fill: theme.text2,
 									fontSize: 12,
 									textAnchor: 'middle',
-									transform: 'translate(0 -24)'
+									transform: 'translate(0 -24)',
+									fontWeight: 500,
+									opacity: 0.5
 								})}
 							/>
 							<text
@@ -345,28 +347,23 @@ export function ValueChart({
 							<Line
 								from={{ x: crosshair, y: margin.crosshair }}
 								to={{ x: crosshair, y: height }}
-								stroke={theme.backgroundOutline}
+								stroke={theme.border1}
 								strokeWidth={1}
 								pointerEvents="none"
-								strokeDasharray="4,4"
+								strokeDasharray="2,2"
+								opacity={0.2}
 							/>
 							<GlyphCircle
 								left={crosshair}
 								top={rdScale(displayValue.value) + margin.top}
-								size={50}
-								fill={theme.accentAction}
-								stroke={theme.backgroundOutline}
-								strokeWidth={0.5}
+								size={36}
+								fill={theme.accent2}
+								stroke={theme.border1}
+								strokeWidth={0.3}
 							/>
 						</g>
 					) : (
-						<AxisBottom
-							hideAxisLine={true}
-							scale={timeScale}
-							stroke={theme.backgroundOutline}
-							top={height - 1}
-							hideTicks
-						/>
+						<></>
 					)}
 					{!width && (
 						<line
@@ -376,7 +373,7 @@ export function ValueChart({
 							y2={height - 1}
 							fill="transparent"
 							shapeRendering="crispEdges"
-							stroke={theme.backgroundOutline}
+							stroke={theme.border1Active}
 							strokeWidth={1}
 						/>
 					)}
@@ -404,42 +401,3 @@ const StyledMissingChart = styled.svg`
 	}
 `;
 const chartBottomPadding = 15;
-function MissingValueChart({
-	width,
-	height,
-	message
-}: {
-	width: number;
-	height: number;
-	message: ReactNode;
-}) {
-	const theme = useTheme();
-	const midPoint = height / 2 + 45;
-	return (
-		<StyledMissingChart
-			data-cy="missing-chart"
-			width={width}
-			height={height}
-			style={{ minWidth: '100%' }}
-		>
-			<path
-				d={`M 0 ${midPoint} Q 104 ${midPoint - 70}, 208 ${midPoint} T 416 ${midPoint}
-          M 416 ${midPoint} Q 520 ${midPoint - 70}, 624 ${midPoint} T 832 ${midPoint}`}
-				stroke={theme.backgroundOutline}
-				fill="transparent"
-				strokeWidth="2"
-			/>
-			{message && (
-				<TrendingUp
-					stroke={theme.textTertiary}
-					x={0}
-					size={12}
-					y={height - chartBottomPadding - 10}
-				/>
-			)}
-			<text y={height - chartBottomPadding} x="20" fill={theme.textTertiary}>
-				{message}
-			</text>
-		</StyledMissingChart>
-	);
-}

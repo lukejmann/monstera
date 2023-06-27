@@ -69,14 +69,17 @@ export const ErrorText = styled(TextHeavy)`
 	color: ${({ theme }) => theme.text2};
 `;
 
-export const Input = styled.input`
+export const Input = styled.input<{ isPlaceholder?: boolean }>`
 	font-size: 12px;
 	flex: 1;
 	font-weight: 500;
 	border: none;
 	outline: none;
-	&::placeholder {
-		color: #d0d0d0;
+	${
+		({ isPlaceholder }) =>
+			// &::placeholder {
+			'color: #d0d0d0;'
+		// }
 	}
 	&:focus {
 		color: ${({ theme }) => theme.text2};
@@ -94,13 +97,10 @@ const SubTextHeavy = styled.div`
 	font-weight: 450;
 `;
 
-export const SpaceTitle = styled(TextHeavy)`
-	font-size: 18.3586px;
-	color: ${({ theme }) => theme.text1};
-`;
-
-export const SpaceSubtitle = styled(SubTextHeavy)`
-	font-size: 14.2269px;
+export const InfoText = styled.div`
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: -0.07px;
 	color: ${({ theme }) => theme.text2};
 `;
 

@@ -7,13 +7,6 @@ import {
 } from 'styled-components/macro';
 import { lightTheme } from './colors';
 
-export const MEDIA_WIDTHS = {
-	deprecated_upToExtraSmall: 500,
-	deprecated_upToSmall: 720,
-	deprecated_upToMedium: 960,
-	deprecated_upToLarge: 1280
-};
-
 const BREAKPOINTS = {
 	xs: 396,
 	sm: 640,
@@ -45,17 +38,6 @@ const opacities = {
 	enabled: 1
 };
 
-const widthsTemplates: { [width in keyof typeof MEDIA_WIDTHS]: typeof css } = Object.keys(
-	MEDIA_WIDTHS
-).reduce((accumulator, size) => {
-	(accumulator as any)[size] = (a: any, b: any, c: any) => css`
-		@media (max-width: ${(MEDIA_WIDTHS as any)[size]}px) {
-			${css(a, b, c)}
-		}
-	`;
-	return accumulator;
-}, {}) as any;
-//
 export function getTheme() {
 	return {
 		...lightTheme,
@@ -71,7 +53,7 @@ export function getTheme() {
 			shadow1Base: '-39px 30px 90px rgba(0, 0, 0, 0.1)',
 			shadow1None: '-13px 10px 30px rgba(0, 0, 0, 0.0)',
 			shadow2Base:
-				' 0px 3.200000047683716px 6.400000095367432px 0px rgba(0, 0, 0, 0.08), 0px 0.800000011920929px 0.800000011920929px 0px rgba(0, 0, 0, 0.02), 0px 2.4000000953674316px 4.800000190734863px 0px rgba(0, 0, 0, 0.06);',
+				'0px 3.200000047683716px 6.400000095367432px 0px rgba(0, 0, 0, 0.08), 0px 0.800000011920929px 0.800000011920929px 0px rgba(0, 0, 0, 0.02), 0px 2.4000000953674316px 4.800000190734863px 0px rgba(0, 0, 0, 0.06);',
 			shadow2None: '0px 0px 0px 0px rgba(0, 0, 0, 0.0)',
 			textShadow1: '0px 2px 6px rgba(0, 0, 0, 0.06)',
 			textShadowNone: '0px 0px 0px rgba(0, 0, 0, 0.0)',
@@ -84,10 +66,17 @@ export function getTheme() {
 			border2Base: '2px solid #E6E6E6',
 			border2None: '2px solid #E6E6E6',
 
-			widths: widthsTemplates,
-
 			transition: transitions,
-			opacity: opacities
+			opacity: opacities,
+			zIndex: {
+				hide: -2,
+				bg: -1,
+				auto: 'auto',
+				base: 0,
+				docked: 10,
+				modalOverlay: 90,
+				modal: 100
+			}
 		}
 	};
 }
@@ -105,8 +94,6 @@ export const ThemedGlobalStyle = createGlobalStyle`
 html {
 font-family: 'Satoshi', Helvetica, Arial, sans-serif;
 backface-visibility: hidden;
-// transform: translateZ(0);
-// -webkit-font-smoothing: subpixel-antialiased;
 text-rendering: optimizeLegibility;
 text-shadow: rgba(0, 0, 0, 0.01) 0 0 1px;
 }

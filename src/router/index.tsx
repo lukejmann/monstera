@@ -17,7 +17,7 @@ const BG = styled.div`
 	background: linear-gradient(0deg, rgba(254, 254, 249, 0.9), rgba(254, 254, 249, 0.96)),
 		url(${Bg}) center center repeat;
 	mix-blend-mode: normal;
-	z-index: -1;
+	z-index: ${({ theme }) => theme.zIndex.bg};
 `;
 
 const AppContainer = styled.div`

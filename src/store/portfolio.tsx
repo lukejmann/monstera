@@ -16,7 +16,7 @@ export interface Request {
 
 interface AssetSpotDatas {
 	assetSpots: AssetSpot[];
-	status: 'idle' | 'pending' | 'loading' | 'success' | 'error';
+	status: 'idle' | 'pending' | 'success' | 'error';
 }
 interface SpotDatasKey {
 	address: string;
@@ -54,6 +54,7 @@ export const portfolioStore = proxy({
 				}
 			);
 		});
+		portfolioStore.dataSetForScope = false;
 	},
 	removeAddress: (address: Address) => {
 		portfolioStore.addresses = portfolioStore.addresses.filter(
@@ -79,10 +80,7 @@ export const portfolioStore = proxy({
 
 	// we need to store the status of each fetch request and data so don't have jumping datapoints
 	assetSpotsDatas: proxyMap<string, AssetSpotDatas>(),
-	setAssetSpotsDataStatus(
-		key: SpotDatasKey,
-		status: 'idle' | 'pending' | 'loading' | 'success' | 'error'
-	) {
+	setAssetSpotsDataStatus(key: SpotDatasKey, status: 'idle' | 'pending' | 'success' | 'error') {
 		const assetSpotsData = portfolioStore.assetSpotsDatas.get(stringifiedSpotDatasKey(key));
 		if (!assetSpotsData) {
 			throw new Error(`assetSpotsData is undefined for key ${key}`);
@@ -105,7 +103,7 @@ export function InitialStateUpdater() {
 // RequestFetcher
 //  listens for updates to scope or addresses and fetches data for each needed assetSpotsData not already fetched or being fetched
 export function RequestFetcher() {
-	const { scope, addresses, assetSpotsDatas } = useSnapshot(portfolioStore);
+	const { scope, addresses } = useSnapshot(portfolioStore);
 
 	useEffect(() => {
 		const keysNeeded = addresses.map((address) => {
@@ -135,7 +133,7 @@ export function RequestFetcher() {
 							});
 							return spots;
 						})
-						.catch((e) => {
+						.catch(() => {
 							portfolioStore.assetSpotsDatas.set(stringifiedKey, {
 								assetSpots: [],
 								status: 'error'

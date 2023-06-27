@@ -158,6 +158,8 @@ export default function Portfolio() {
 	// to get the asset spots for the current scope, we first group the asset spots by timestamp (raw data has chuncked timestamps already)
 	const groupedAssetSpots = useMemo(() => {
 		return assetSpotsToDisplay.reduce((acc, assetSpot) => {
+			// if assetSpot.value is 0, we don't want to include it in the chart
+			if (assetSpot.value === 0) return acc;
 			// round timestamp to the nearest minute
 			const date = new Date(assetSpot.timestamp);
 			const timestampDate =
@@ -254,7 +256,7 @@ export default function Portfolio() {
 				</PortfolioHeader>
 
 				<ValueChart width={bounds.width} height={400} values={chartValues} portfolioScope={scope} />
-				{focusedSpots && <TokenList assetSpots={focusedSpots.filter((s) => s.value > 0)} />}
+				{focusedSpots && <TokenList assetSpots={focusedSpots} />}
 			</PortfolioContainer>
 			<RequestFetcher />
 			<DisplayDataUpdater />

@@ -7,21 +7,21 @@ import { ReactComponent as PlusIcon } from '~/assets/plus-circle';
 import { addressesModalState, portfolioStore } from '~/store';
 import { ActionText, ErrorText, Input, SectionTitle } from '~/ui';
 import ActionButton from '~/ui/buttons';
-import AddressesList from '.';
+import AddressesList from './AddressesList';
 
 const AddAddressModalOverlay = styled.div`
 	position: absolute;
 	top: 0;
-	left: 0
-    z-index: 100;
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(1.5px);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 100vh;
+	left: 0;
+	z-index: ${({ theme }) => theme.zIndex.modal};
+	background: rgba(0, 0, 0, 0.2);
+	backdrop-filter: blur(1.5px);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	width: 100vw;
+	height: 100vh;
 `;
 
 const AddressModalSpacer = styled.div`
@@ -38,18 +38,19 @@ const AddressModal = styled.div`
 	padding: 12px;
 	flex-direction: column;
 	align-items: flex-start;
-	gap: 10px;
+	gap: 14px;
 	border-radius: 14px;
 	border: 1px solid #d0d0d0;
-	background: #fff;
+	background: ${({ theme }) => theme.modalBackground};
 	box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.25);
 `;
 
 const Separator = styled.div`
-	width: 305px;
+	width: calc(100% - 2px);
+	margin-left: 2px;
 	height: 1px;
 	opacity: 0.5;
-	background: #f0f0ee;
+	background: #bbd1d6;
 `;
 
 const InputWrapper = styled.div`
@@ -104,6 +105,8 @@ export default function AddressesModal() {
 		portfolioStore.addAddress({
 			pubkey: textInput
 		});
+		addressesModalState.isOpen = false;
+		onClose();
 	};
 
 	return (
@@ -116,14 +119,13 @@ export default function AddressesModal() {
 						<AddressesList />
 						<Separator />
 						<AddRow onClick={() => (addressesModalState.isOpen = true)}>
-							{/* <PlusIcon /> */}
-							<ActionText style={{ fontWeight: 500 }}>Add Address</ActionText>
+							<ActionText style={{ fontWeight: 600 }}>Add Address</ActionText>
 						</AddRow>
 
 						<InputWrapper>
 							<Input
-								placeholder="Address"
-								value={textInput}
+								placeholder="Enter address"
+								value={textInput || ''}
 								onChange={(e) => (addressesModalState.textInput = e.target.value)}
 							/>
 						</InputWrapper>
