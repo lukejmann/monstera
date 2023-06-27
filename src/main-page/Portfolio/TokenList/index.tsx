@@ -122,7 +122,7 @@ const RowInfoCol = styled.div`
 	gap: 2px;
 	width: 100px;
 `;
-
+//
 const TokenRow = ({ spot, styles }: { spot: AssetSpot; styles: any }) => {
 	return (
 		<TokenRowContainer key={spot.token_address + spot.timestamp + spot.for_scope} style={styles}>
