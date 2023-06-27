@@ -1,6 +1,6 @@
 import { Group } from '@visx/group';
 import { LinePath } from '@visx/shape';
-import { CurveFactory } from 'd3';
+import { CurveFactory, ScaleLinear } from 'd3';
 import React from 'react';
 import { ReactNode } from 'react';
 import { useTheme } from 'styled-components/macro';
@@ -16,6 +16,7 @@ export interface LineChartProps<T> {
 	children?: ReactNode;
 	width: number;
 	height: number;
+	scale: ScaleLinear<number, number, any>;
 }
 
 function LineChart<T>({

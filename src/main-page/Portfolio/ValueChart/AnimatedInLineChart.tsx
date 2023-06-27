@@ -1,21 +1,25 @@
+import { LinearGradient } from '@visx/gradient';
 import { Group } from '@visx/group';
 import { LinePath } from '@visx/shape';
+import { AreaClosed, Bar, Line } from '@visx/shape';
 import { easeSinOut } from 'd3';
 import ms from 'ms.macro';
 import React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { animated, useSpring } from 'react-spring';
 import { useTheme } from 'styled-components/macro';
+import { opacify } from '~/ui';
 import { LineChartProps } from './LineChart';
 
 type AnimatedInLineChartProps<T> = Omit<LineChartProps<T>, 'height' | 'width' | 'children'>;
+
+const AnimatedAreaClosed = animated(AreaClosed);
+const AnimatedLinearGradient = animated(LinearGradient);
 
 const config = {
 	duration: ms`0.8s`,
 	easing: easeSinOut
 };
-
-// code reference: https://airbnb.io/visx/lineradial
 
 function AnimatedInLineChart<T>({
 	data,
@@ -24,6 +28,7 @@ function AnimatedInLineChart<T>({
 	marginTop,
 	curve,
 	color,
+	scale,
 	strokeWidth
 }: AnimatedInLineChartProps<T>) {
 	const lineRef = useRef<SVGPathElement>(null);
@@ -31,19 +36,32 @@ function AnimatedInLineChart<T>({
 	const [shouldAnimate, setShouldAnimate] = useState(false);
 	const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
 
+	// const prevGetY = usePrevious(getY); // Storing the previous value of getY
+	// const [ySpring, setYSpring] = useSpring(() => ({ y: getY(data[0]) }));
+
 	const spring = useSpring({
 		frame: shouldAnimate ? 0 : 1,
 		config,
 		onRest: () => {
-			setShouldAnimate(false);
+			setShouldAnimate(true);
 			setHasAnimatedIn(true);
 		}
 	});
 
-	// We need to check to see after the "invisble" line has been drawn
-	// what the length is to be able to animate in the line for the first time
-	// This will run on each render to see if there is a new line length
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+	// // Use another useEffect to monitor getY changes and animate vertically
+	// useEffect(() => {
+	// 	if (prevGetY !== undefined && getY !== prevGetY) {
+	// 		// interpolate the frame on data.length to call getY with the right index
+	// 		const frame = spring.frame.to((frame) => Math.floor(frame * data.length));
+	// 		setYSpring({ y: getY(data[frame]) });
+	// 	}
+	// }, [getY, prevGetY, setYSpring, spring.frame, data]);
+
+	useEffect(() => {
+		setShouldAnimate(false);
+		setHasAnimatedIn(false);
+	}, [data]);
+
 	useEffect(() => {
 		if (lineRef.current) {
 			const length = lineRef.current.getTotalLength();
@@ -59,12 +77,27 @@ function AnimatedInLineChart<T>({
 	const lineColor = color ?? theme.accent1;
 
 	return (
-		<Group top={marginTop}>
+		<Group top={marginTop} style={{ padding: 10, margin: -10, overflow: 'visible' }}>
 			<LinePath curve={curve} x={getX} y={getY}>
 				{({ path }) => {
 					const d = path(data) || '';
 					return (
 						<>
+							<AreaClosed
+								yScale={scale}
+								data={data}
+								x={getX}
+								y={getY}
+								strokeWidth={1}
+								fill="url(#area-gradient)"
+								curve={curve}
+							/>
+							<AnimatedLinearGradient
+								id="area-gradient"
+								from={spring.frame.to((v) => opacify(10 - 10 * v, theme.accent2))}
+								to={spring.frame.to((v) => opacify(2 - 2 * v, theme.accent1))}
+							/>
+
 							<animated.path
 								d={d}
 								ref={lineRef}
@@ -72,6 +105,7 @@ function AnimatedInLineChart<T>({
 								strokeOpacity={hasAnimatedIn ? 1 : 0}
 								fill="none"
 								stroke={lineColor}
+								// transform={ySpring.y.to((value) => `translate(0, ${value})`)} // Add this
 							/>
 							{shouldAnimate && lineLength !== 0 && (
 								<animated.path
@@ -81,6 +115,7 @@ function AnimatedInLineChart<T>({
 									stroke={lineColor}
 									strokeDashoffset={spring.frame.to((v) => v * lineLength)}
 									strokeDasharray={lineLength}
+									// transform={ySpring.y.to((value) => `translate(0, ${value})`)} // Add this
 								/>
 							)}
 						</>

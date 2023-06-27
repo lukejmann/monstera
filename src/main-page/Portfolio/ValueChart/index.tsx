@@ -8,15 +8,14 @@ import { EventType } from '@visx/event/lib/types';
 import { GlyphCircle } from '@visx/glyph';
 import { Line } from '@visx/shape';
 import { NumberValue, bisect, curveCardinal, scaleLinear, timeDay, timeMinute } from 'd3';
-import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowDownRight, ArrowUpRight, TrendingUp } from 'react-feather';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowDownRight, ArrowUpRight } from 'react-feather';
 import { animated, config, useSpring } from 'react-spring';
 import styled, { useTheme } from 'styled-components/macro';
-import { ErrorText, opacify } from '~/ui';
+import { opacify } from '~/ui';
 import { PortfolioScope, minutesPerScope, portfolioFocusedDate } from '../index';
-import { dayHourFormatter, formatUSD, hourFormatter, monthDayFormatter } from '../util';
+import { dayHourFormatter, hourFormatter, monthDayFormatter } from '../util';
 import AnimatedInLineChart from './AnimatedInLineChart';
-import InLineChart from './InLineChart';
 
 const DATA_EMPTY = { value: 0, date: new Date() };
 
@@ -305,6 +304,7 @@ export function ValueChart({
 			) : (
 				<svg data-cy="value-chart" width={width} height={height} style={{ minWidth: '100%' }}>
 					<AnimatedInLineChart
+						scale={rdScale}
 						data={values}
 						getX={getX}
 						getY={getY}
