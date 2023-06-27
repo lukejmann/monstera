@@ -55,7 +55,7 @@ const widthsTemplates: { [width in keyof typeof MEDIA_WIDTHS]: typeof css } = Ob
 	`;
 	return accumulator;
 }, {}) as any;
-
+//
 export function getTheme() {
 	return {
 		...lightTheme,
